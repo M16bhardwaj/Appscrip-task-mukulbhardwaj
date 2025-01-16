@@ -1,5 +1,6 @@
-"use client";
-import React, { useState } from "react";
+"use client"; // Move this to the top
+
+import React, { useState, useEffect, useRef } from "react";
 import {
   Img,
   Text,
@@ -29,10 +30,22 @@ const dropDownOptions = [
 
 export default function WebPLPWithFilterPage() {
   const [isFilterVisible, setIsFilterVisible] = useState(true);
+  const [menuPortalTarget, setMenuPortalTarget] = useState(null);
+  const [clientRendered, setClientRendered] = useState(false); // Track whether the client has rendered
+  const menuPortalRef = useRef(null);
+
+  useEffect(() => {
+    // This ensures the client-side only code runs after mounting
+    setMenuPortalTarget(menuPortalRef.current);
+    setClientRendered(true); // Mark client rendering as complete
+  }, []);
 
   const handleFilterClick = () => {
     setIsFilterVisible(!isFilterVisible);
   };
+
+  // Prevent rendering until after client-side hydration is complete
+  if (!clientRendered) return null;
 
   return (
     <div className="flex w-full flex-col items-center gap-[58px] bg-white-A700 sm:gap-[29px]">
@@ -88,23 +101,27 @@ export default function WebPLPWithFilterPage() {
                     </Text>
                   </div>
                 </div>
-                <SelectBox
-                  menuPortalTarget={document.getElementById("menuPortalTarget")}
-                  shape="square"
-                  indicator={
-                    <Img
-                      src="img_checkmark.svg"
-                      width={16}
-                      height={16}
-                      alt="checkmark"
-                      className="h-[16px] w-[16px]"
-                    />
-                  }
-                  name="recommended"
-                  placeholder={`Recommended`}
-                  options={dropDownOptions}
-                  className="mr-3 mt-[7px] w-[20%] gap-px font-bold uppercase text-gray-900 sm:mr-0 sm:w-full sm:pr-5"
-                />
+
+                {/* Ensure SelectBox is rendered only after client-side hydration */}
+                {clientRendered && (
+                  <SelectBox
+                    menuPortalTarget={menuPortalTarget}
+                    shape="square"
+                    indicator={
+                      <Img
+                        src="img_checkmark.svg"
+                        width={16}
+                        height={16}
+                        alt="checkmark"
+                        className="h-[16px] w-[16px]"
+                      />
+                    }
+                    name="recommended"
+                    placeholder={`Recommended`}
+                    options={dropDownOptions}
+                    className="mr-3 mt-[7px] w-[20%] gap-px font-bold uppercase text-gray-900 sm:mr-0 sm:w-full sm:pr-5"
+                  />
+                )}
               </div>
             </div>
             <div className="flex items-start gap-4 md:flex-col">
